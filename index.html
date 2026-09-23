@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Budget</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#4b8861">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Budget">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF; --surface:#FFFFFF; --ink:#1C2B2E; --sub:#68716E; --line:#E3E0D6;
+  --accent:#2F6F5E; --accent-soft:#DCEAE4; --warn:#B5482A; --warn-soft:#F3E1D8;
+  --serif:'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans:'Inter', -apple-system, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14181A; --surface:#1D2325; --ink:#EDEBE4; --sub:#9AA3A0; --line:#2C3335;
+    --accent:#5FA893; --accent-soft:#22322D; --warn:#D9724F; --warn-soft:#382420;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14181A; --surface:#1D2325; --ink:#EDEBE4; --sub:#9AA3A0; --line:#2C3335;
+  --accent:#5FA893; --accent-soft:#22322D; --warn:#D9724F; --warn-soft:#382420;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); min-height:100%;}
+.topbar{padding:18px 20px 10px; padding-top:calc(18px + env(safe-area-inset-top,0px)); position:sticky; top:0; background:var(--bg); z-index:5; border-bottom:1px solid var(--line);}
+.topbar h1{font-family:var(--serif); font-weight:600; font-size:22px; margin:0;}
+main{padding:16px 16px 90px; max-width:520px; margin:0 auto;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px;}
+.hero{margin-bottom:16px;}
+.month-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.month-nav button{background:none; border:1px solid var(--line); border-radius:8px; width:34px; height:34px; font-size:16px; color:var(--ink); cursor:pointer;}
+.month-nav .label{font-size:14px; color:var(--sub); text-transform:capitalize;}
+.total-amount{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1.1; margin:2px 0 4px;}
+.total-label{font-size:13px; color:var(--sub);}
+.reste-line{font-size:14px; color:var(--sub); margin-top:2px;}
+.reste-line b{color:var(--warn); font-family:var(--serif); font-weight:600; font-size:15px;}
+.breakdown{display:flex; gap:14px; margin-top:14px; flex-wrap:wrap; font-size:13px; color:var(--sub);}
+.breakdown b{color:var(--ink); font-weight:600;}
+.section-title{font-size:14px; color:var(--sub); margin:22px 0 10px;}
+.echeance-toggle{display:flex; align-items:center; justify-content:space-between; cursor:pointer;}
+.echeance-toggle .chev{font-size:11px;}
+.row{display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid var(--line);}
+.row:last-child{border-bottom:none;}
+.day-badge{width:38px; height:38px; border-radius:10px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; flex-shrink:0;}
+.row-main{flex:1; min-width:0;}
+.row-name{font-size:15px; font-weight:500;}
+.row-sub{font-size:12px; color:var(--sub); margin-top:1px; display:flex; align-items:center;}
+.row-amount{font-family:var(--serif); font-size:16px; font-weight:600; white-space:nowrap;}
+.cat-dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; flex-shrink:0;}
+.cat-section{display:flex; align-items:center;}
+.empty{text-align:center; padding:34px 16px; color:var(--sub); font-size:14px; line-height:1.5;}
+.empty strong{display:block; color:var(--ink); font-family:var(--serif); font-size:17px; margin-bottom:4px; font-weight:600;}
+.fab-row{display:flex; justify-content:flex-end; margin-bottom:4px;}
+.btn{background:var(--accent); color:#fff; border:none; border-radius:10px; padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--sans);}
+.btn.secondary{background:none; color:var(--sub); border:1px solid var(--line);}
+.btn.small{padding:7px 12px; font-size:12px; margin-top:10px;}
+form.entry{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px;}
+form.entry .field{margin-bottom:12px;}
+form.entry label{display:block; font-size:12px; color:var(--sub); margin-bottom:5px;}
+form.entry input, form.entry select{width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font-size:15px; font-family:var(--sans);}
+form.entry .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+form.entry .actions{display:flex; gap:10px; margin-top:14px;}
+form.mini{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px;}
+form.mini .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;}
+form.mini input{padding:8px 9px; border:1px solid var(--line); border-radius:7px; background:var(--surface); color:var(--ink); font-size:13px; width:100%; font-family:var(--sans);}
+form.mini .actions{display:flex; gap:8px;}
+.tag{font-size:11px; padding:2px 8px; border-radius:20px; background:var(--accent-soft); color:var(--accent); font-weight:600; flex-shrink:0;}
+.tag.warn{background:var(--warn-soft); color:var(--warn);}
+.del{background:none; border:none; color:var(--sub); font-size:18px; cursor:pointer; padding:4px 6px; line-height:1;}
+.tabbar{position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom,0px); z-index:5;}
+.tab{flex:1; background:none; border:none; padding:13px 4px 10px; color:var(--sub); font-size:12px; font-family:var(--sans); cursor:pointer; font-weight:500;}
+.tab.active{color:var(--accent); font-weight:700;}
+.row.paid{opacity:.5;}
+.row.paid .row-name{font-size:13px;}
+.check-dot{width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;}
+.row.due{background:var(--warn-soft); border-radius:12px; padding:16px 10px; margin:4px 0; border-bottom:none;}
+.row.due .row-name{font-size:16.5px; font-weight:700;}
+.row.due .row-amount{font-size:18px;}
+.day-badge.due-badge{background:var(--warn); color:#fff;}
+.icon-btn{border:none; border-radius:8px; width:32px; height:32px; font-size:15px; cursor:pointer; flex-shrink:0;}
+.icon-btn.ok{background:var(--accent); color:#fff;}
+.icon-btn.no{background:var(--warn); color:#fff;}
+.icon-btn.ghost{background:none; color:var(--sub); font-size:21px; width:38px; height:38px;}
+.menu button{min-height:44px;}
+.due-actions{display:flex; gap:6px;}
+.menu-wrap{position:relative; flex-shrink:0;}
+.menu{position:absolute; right:0; top:30px; background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.15); z-index:10; overflow:hidden;}
+.menu button{display:block; width:100%; white-space:nowrap; padding:10px 14px; background:none; border:none; text-align:left; font-size:13px; color:var(--ink); cursor:pointer;}
+.pepette-row{display:flex; align-items:center; justify-content:space-between; margin-top:10px; font-size:13px; color:var(--sub);}
+.solde-input{width:110px; text-align:right; padding:7px 9px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font-size:14px; font-family:var(--sans);}
+.revenu-list{margin-top:8px;}
+.revenu-item{display:flex; align-items:center; gap:8px; font-size:13px; padding:6px 0; border-top:1px solid var(--line);}
+.revenu-item span:first-child{flex:1;}
+.echeance-list{max-height:340px; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+.pie-wrap{display:flex; justify-content:center; margin:16px 0 6px;}
+.pie{width:140px; height:140px; border-radius:50%; flex-shrink:0;}
+.pie-legend{margin-top:4px;}
+.legend-row{display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13px; border-top:1px solid var(--line);}
+.legend-row:first-child{border-top:none;}
+.legend-name{flex:1;}
+.legend-pct{color:var(--sub); width:38px; text-align:right;}
+.legend-amt{font-family:var(--serif); font-weight:600; width:62px; text-align:right;}
+.archive-card .row{opacity:.5;}
+.archive-card .row-name{font-size:13px;}
+.muted{color:var(--sub); font-size:13px; padding:6px 2px;}
+.confirm-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; align-items:center; justify-content:center; padding:20px;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--surface); border-radius:14px; padding:20px; max-width:340px; width:100%;}
+.confirm-box p{margin:0 0 16px; font-size:15px; color:var(--ink); line-height:1.4;}
+.confirm-actions{display:flex; gap:10px;}
+.confirm-actions .btn{flex:1;}
+.btn.warn-btn{background:var(--warn);}
+</style>
+</head>
+<body>
+<div class="topbar"><h1>Budget</h1></div>
+<main id="content"></main>
+<div id="confirm-overlay" class="confirm-overlay">
+  <div class="confirm-box">
+    <p id="confirm-message"></p>
+    <div class="confirm-actions">
+      <button type="button" id="confirm-yes" class="btn warn-btn">Supprimer</button>
+      <button type="button" class="btn secondary" onclick="closeConfirm()">Annuler</button>
+    </div>
+  </div>
+</div>
+<nav class="tabbar">
+  <button class="tab" data-tab="apercu">Aperçu</button>
+  <button class="tab" data-tab="charges">Charges</button>
+  <button class="tab" data-tab="epargne">Épargne</button>
+  <button class="tab" data-tab="except">Exceptionnel</button>
+</nav>
+
+<script>
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(n||0);
+const PAYDAY = 25;
+const CATEGORIES = ['Assurance + Banque','Abonnement','Habitation','Exceptionnel','Épargne','Autre'];
+const CATS = {
+  'Assurance + Banque': {bg:'#DCEAF7', text:'#2E5F8A', dot:'#5B9BD5'},
+  'Abonnement':         {bg:'#DCEAF7', text:'#2E5F8A', dot:'#5B9BD5'},
+  'Habitation':         {bg:'#DCEAF7', text:'#2E5F8A', dot:'#5B9BD5'},
+  'Exceptionnel':       {bg:'#FFF3D6', text:'#8A6D00', dot:'#FFC000'},
+  'Épargne':            {bg:'#E4F1DC', text:'#3F7A2E', dot:'#70AD47'},
+  'Autre':              {bg:'#E9E7E0', text:'#68716E', dot:'#9AA3A0'}
+};
+const SEED_CHARGES = [
+  {nom:'AGPM - Voiture', montant:86, jour:2,  categorie:'Assurance + Banque'},
+  {nom:'Prévoyance',     montant:20, jour:1,  categorie:'Assurance + Banque'},
+  {nom:'Allianz',        montant:6,  jour:1,  categorie:'Assurance + Banque'},
+  {nom:'SG - Sobrio',    montant:8,  jour:1,  categorie:'Assurance + Banque'},
+  {nom:'Youtube',        montant:13, jour:20, categorie:'Abonnement'},
+  {nom:'Netflix',        montant:15, jour:13, categorie:'Abonnement'},
+  {nom:'Spotify',        montant:18, jour:1,  categorie:'Abonnement'},
+  {nom:'Free Mobile',    montant:20, jour:17, categorie:'Abonnement'},
+  {nom:'Locakase',       montant:52, jour:1,  categorie:'Habitation'},
+  {nom:'Permis moto',    montant:260,jour:1,  categorie:'Exceptionnel'},
+  {nom:'Impot',          montant:96, jour:1,  categorie:'Exceptionnel'},
+  {nom:'MPP',            montant:300,jour:1,  categorie:'Épargne', typeEpargne:'Virement'},
+  {nom:'Livret A',       montant:200,jour:1,  categorie:'Épargne', typeEpargne:'Virement'}
+];
+const CHARGE_CATEGORIES = CATEGORIES.filter(c=>c!=='Épargne');
+const TYPES_EPARGNE = ['Virement','Assurance vie','Livret','PEA','Autre'];
+
+function getCatInfo(name){
+  if(CATS[name]) return CATS[name];
+  const custom = (state.customCategories||[]).find(c=>c.name===name);
+  if(custom) return {dot:custom.color, text:custom.color, bg:custom.color+'22'};
+  return CATS['Autre'];
+}
+function getChargeCategories(){ return CHARGE_CATEGORIES.concat((state.customCategories||[]).map(c=>c.name)); }
+function isCustomCategory(name){ return (state.customCategories||[]).some(c=>c.name===name); }
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem('budget_v1'));
+    if(s && s.charges){
+      if(!s.paidStatus) s.paidStatus={};
+      if(!s.exceptionnelles) s.exceptionnelles=[];
+      if(!s.soldeByMonth) s.soldeByMonth={};
+      if(!s.revenus) s.revenus=[];
+      if(!s.customCategories) s.customCategories=[];
+      return s;
+    }
+  }catch(e){}
+  return {
+    charges: SEED_CHARGES.map(c=>({id:uid(), nom:c.nom, montant:c.montant, jour:c.jour, categorie:c.categorie, frequence:'mensuel', mois:'', moisUnique:'', typeEpargne:c.typeEpargne||''})),
+    exceptionnelles: [], paidStatus: {}, soldeByMonth: {}, revenus: [], customCategories: []
+  };
+}
+let state = loadState();
+function save(){ try{ localStorage.setItem('budget_v1', JSON.stringify(state)); }catch(e){} }
+
+const today = new Date();
+function currentCycle(){
+  let y=today.getFullYear(), m=today.getMonth()+1;
+  if(today.getDate() >= PAYDAY){ m+=1; if(m>12){m=1;y+=1;} }
+  return {year:y, month:m};
+}
+const cc0 = currentCycle();
+let viewMonth = new Date(cc0.year, cc0.month-1, 1); viewMonth.setHours(0,0,0,0);
+
+let confirmAction = null;
+function askConfirm(message, fn){
+  confirmAction = fn;
+  document.getElementById('confirm-message').textContent = message;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm(){
+  confirmAction = null;
+  document.getElementById('confirm-overlay').classList.remove('open');
+}
+document.getElementById('confirm-yes').addEventListener('click', ()=>{
+  const fn = confirmAction;
+  closeConfirm();
+  if(fn) fn();
+});
+
+let tab = 'apercu';
+let editingCharge=null, editingExcept=null, showChargeForm=false, showExceptForm=false, openMenuFor=null, echeancesOpen=false, showRevenuForm=false;
+
+function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function keyFor(kind,id){ return kind+'_'+id+'_'+monthKey(viewMonth); }
+
+// Renvoie la date calendaire réelle d'une échéance de jour `jour` au sein du cycle (viewYear, viewMonth).
+// Le cycle "M" couvre du 25 du mois M-1 au 24 du mois M : un jour >= 25 appartient donc au mois calendaire précédent.
+function occurrenceDate(viewYear, viewMonth1, jour){
+  if(jour < PAYDAY) return {year:viewYear, month:viewMonth1, day:jour};
+  let m = viewMonth1-1, y = viewYear;
+  if(m<1){ m=12; y-=1; }
+  return {year:y, month:m, day:jour};
+}
+
+function itemsForMonth(d){
+  const vy = d.getFullYear(), vm = d.getMonth()+1;
+  const items = [];
+  state.charges.forEach(c=>{
+    const occ = occurrenceDate(vy, vm, +c.jour||1);
+    if(c.frequence==='mensuel'){
+      items.push({id:c.id, nom:c.nom, montant:+c.montant, jour:+c.jour, occ, type:'Mensuelle', kind:'charge', categorie:c.categorie});
+    } else if(c.frequence==='unique'){
+      if(c.moisUnique === monthKey(d)) items.push({id:c.id, nom:c.nom, montant:+c.montant, jour:+c.jour||1, occ, type:'Ponctuelle', kind:'charge', categorie:c.categorie});
+    } else if(occ.month === +c.mois){
+      items.push({id:c.id, nom:c.nom, montant:+c.montant, jour:+c.jour, occ, type:'Annuelle', kind:'charge', categorie:c.categorie});
+    }
+  });
+  state.exceptionnelles.forEach(e=>{
+    const [y,m] = e.moisDebut.split('-').map(Number);
+    const startIdx = y*12+(m-1), curIdx = vy*12+(vm-1);
+    const offset = curIdx - startIdx;
+    if(offset>=0 && offset < +e.duree){
+      const jourE = +e.jour||1;
+      const occ = occurrenceDate(vy, vm, jourE);
+      items.push({id:e.id, nom:e.nom, montant:+e.montant, jour:jourE, occ, type:'Exceptionnelle ('+(offset+1)+'/'+e.duree+')', kind:'except', categorie:null});
+    }
+  });
+  items.sort((a,b)=> occValue(a.occ)-occValue(b.occ));
+  return items;
+}
+function occValue(o){ return o.year*372 + o.month*31 + o.day; }
+
+function markPaid(key){ state.paidStatus[key]='paid'; save(); openMenuFor=null; renderApercu(); }
+function dismissDue(key){ state.paidStatus[key]='dismissed'; save(); renderApercu(); }
+function unmarkPaid(key){ delete state.paidStatus[key]; save(); openMenuFor=null; renderApercu(); }
+function toggleMenu(key){ openMenuFor=(openMenuFor===key)?null:key; render(); }
+function toggleEcheances(){ echeancesOpen=!echeancesOpen; renderApercu(); }
+
+function itemRowHtml(i){
+  const cat = i.categorie ? getCatInfo(i.categorie) : CATS['Exceptionnel'];
+  const catLabel = i.categorie ? `<span class="cat-dot" style="background:${cat.dot}"></span>${i.categorie} · ` : '';
+  if(i.status==='paid'){
+    return `<div class="row paid">
+      <div class="check-dot">✓</div>
+      <div class="row-main"><div class="row-name">${escapeHtml(i.nom)}</div><div class="row-sub">${catLabel}${i.type} · débité</div></div>
+      <div class="row-amount">${fmt(i.montant)}</div>
+      <div class="menu-wrap">
+        <button class="icon-btn ghost" onclick="toggleMenu('${i.key}')">⋮</button>
+        ${openMenuFor===i.key ? `<div class="menu"><button onclick="unmarkPaid('${i.key}')">Annuler le débit</button></div>` : ''}
+      </div>
+    </div>`;
+  }
+  if(i.showDue){
+    return `<div class="row due">
+      <div class="day-badge due-badge">${String(i.jour).padStart(2,'0')}</div>
+      <div class="row-main"><div class="row-name">${escapeHtml(i.nom)}</div><div class="row-sub">${catLabel}${i.type}</div></div>
+      <div class="row-amount">${fmt(i.montant)}</div>
+      <div class="due-actions">
+        <button class="icon-btn ok" onclick="markPaid('${i.key}')" title="Débité">✓</button>
+        <button class="icon-btn no" onclick="dismissDue('${i.key}')" title="Pas encore débité">✕</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="row">
+    <div class="day-badge">${String(i.jour).padStart(2,'0')}</div>
+    <div class="row-main"><div class="row-name">${escapeHtml(i.nom)}</div><div class="row-sub">${catLabel}${i.type}</div></div>
+    <div class="row-amount">${fmt(i.montant)}</div>
+    <div class="menu-wrap">
+      <button class="icon-btn ghost" onclick="toggleMenu('${i.key}')">⋮</button>
+      ${openMenuFor===i.key ? `<div class="menu"><button onclick="markPaid('${i.key}')">Marquer débité</button></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderApercu(){
+  const items = itemsForMonth(viewMonth);
+  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  let enriched = items.map(i=>{
+    const key = keyFor(i.kind, i.id);
+    const status = state.paidStatus[key];
+    const dueDate = new Date(i.occ.year, i.occ.month-1, i.occ.day).getTime();
+    const due = dueDate <= todayMid;
+    const showDue = due && status!=='paid' && status!=='dismissed';
+    return Object.assign({}, i, {key, status, showDue});
+  });
+  enriched.sort((a,b)=>{
+    if((a.status==='paid') !== (b.status==='paid')) return a.status==='paid' ? -1 : 1;
+    return occValue(a.occ) - occValue(b.occ);
+  });
+  const total = items.reduce((s,i)=>s+i.montant,0);
+  const reste = enriched.filter(i=>i.status!=='paid').reduce((s,i)=>s+i.montant,0);
+  const byType = {Mensuelle:0, Annuelle:0}; let exceptTotal=0;
+  items.forEach(i=>{ if(i.kind==='except') exceptTotal+=i.montant; else byType[i.type]+=i.montant; });
+
+  const mk = monthKey(viewMonth);
+  const revenusForMonth = state.revenus.filter(r=>r.mois===mk);
+  const revenusTotal = revenusForMonth.reduce((s,r)=>s+ +r.montant,0);
+  const solde = state.soldeByMonth[mk] || 0;
+  const pepette = solde + revenusTotal - total;
+
+  const unpaidSorted = enriched.filter(i=>i.status!=='paid').slice().sort((a,b)=>occValue(a.occ)-occValue(b.occ));
+  const displayList = echeancesOpen ? enriched : (unpaidSorted[0] ? [unpaidSorted[0]] : enriched.slice(0,1));
+  const rowsInner = displayList.map(itemRowHtml).join('');
+  const rowsHtml = items.length
+    ? (echeancesOpen ? `<div class="echeance-list">${rowsInner}</div>` : rowsInner)
+    : `<div class="empty"><strong>Rien à payer ce cycle-ci</strong>Ajoute une charge ou une dépense exceptionnelle pour la voir apparaître ici.</div>`;
+
+  const catTotals = {};
+  items.forEach(i=>{ const cat = i.categorie || 'Exceptionnel'; catTotals[cat] = (catTotals[cat]||0) + i.montant; });
+  const pieCats = Object.keys(catTotals);
+  let acc = 0;
+  const gradientStops = pieCats.map(cat=>{ const amt=catTotals[cat]; const pct=total?amt/total*100:0; const seg=`${getCatInfo(cat).dot} ${acc.toFixed(2)}% ${(acc+pct).toFixed(2)}%`; acc+=pct; return seg; }).join(', ');
+  const legendHtml = pieCats.map(cat=>{ const amt=catTotals[cat]; const pct = total ? Math.round(amt/total*1000)/10 : 0; const c=getCatInfo(cat); return `<div class="legend-row"><span class="cat-dot" style="background:${c.dot}"></span><span class="legend-name">${cat}</span><span class="legend-pct">${pct}%</span><span class="legend-amt">${fmt(amt)}</span></div>`; }).join('');
+  const pieHtml = total>0 ? `<div class="pie-wrap"><div class="pie" style="background:conic-gradient(${gradientStops})"></div></div><div class="pie-legend">${legendHtml}</div>` : '';
+
+  document.getElementById('content').innerHTML = `
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <div class="label">${MOIS[viewMonth.getMonth()]} ${viewMonth.getFullYear()}</div>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="card hero">
+      <div class="total-label">Charge mensuel</div>
+      <div class="total-amount">${fmt(total)}</div>
+      <div class="reste-line">Reste à payer : <b>${fmt(reste)}</b></div>
+      <div class="breakdown">
+        <span>Mensuelles <b>${fmt(byType.Mensuelle)}</b></span>
+        <span>Annuelles <b>${fmt(byType.Annuelle)}</b></span>
+        <span>Exceptionnel <b>${fmt(exceptTotal)}</b></span>
+      </div>
+      ${pieHtml}
+    </div>
+    <div class="card hero">
+      <div class="total-label">Pépette du mois</div>
+      <div class="total-amount">${fmt(pepette)}</div>
+      <div class="pepette-row"><span>Salaire du mois</span><input type="number" step="0.01" class="solde-input" value="${solde||''}" placeholder="0" onchange="updateSolde(this.value)"></div>
+      ${revenusForMonth.length ? `<div class="revenu-list">${revenusForMonth.map(r=>`<div class="revenu-item"><span>${escapeHtml(r.nom)}</span><span>${fmt(r.montant)}</span><button class="del" onclick="deleteRevenu('${r.id}')">×</button></div>`).join('')}</div>` : ''}
+      ${showRevenuForm ? `
+        <form class="mini" onsubmit="submitRevenu(event)">
+          <div class="grid2"><input required id="r-nom" placeholder="Nom (prime, cadeau…)"><input required id="r-montant" type="number" step="0.01" placeholder="Montant €"></div>
+          <div class="actions"><button type="submit" class="btn small">Ajouter</button><button type="button" class="btn secondary small" onclick="toggleRevenuForm()">Annuler</button></div>
+        </form>` : `<button class="btn secondary small" onclick="toggleRevenuForm()">+ Revenu exceptionnel</button>`}
+    </div>
+    <div class="section-title echeance-toggle" onclick="toggleEcheances()"><span>Échéances du cycle</span><span class="chev">${echeancesOpen?'▲ réduire':'▼ voir tout'}</span></div>
+    <div class="card">${rowsHtml}</div>
+  `;
+}
+
+function changeMonth(delta){ viewMonth.setMonth(viewMonth.getMonth()+delta); openMenuFor=null; showRevenuForm=false; echeancesOpen=false; renderApercu(); }
+function updateSolde(val){ state.soldeByMonth[monthKey(viewMonth)] = parseFloat(val)||0; save(); renderApercu(); }
+function toggleRevenuForm(){ showRevenuForm=!showRevenuForm; renderApercu(); }
+function submitRevenu(ev){
+  ev.preventDefault();
+  const nom = document.getElementById('r-nom').value.trim();
+  const montant = document.getElementById('r-montant').value;
+  if(!nom || !montant) return;
+  state.revenus.push({id:uid(), nom, montant, mois:monthKey(viewMonth)});
+  save(); showRevenuForm=false; renderApercu();
+}
+function deleteRevenu(id){ state.revenus = state.revenus.filter(r=>r.id!==id); save(); renderApercu(); }
+
+function catOptions(sel){ return getChargeCategories().map(c=>`<option value="${c}" ${sel===c?'selected':''}>${c}</option>`).join(''); }
+function typeEpargneOptions(sel){ return TYPES_EPARGNE.map(t=>`<option value="${t}" ${sel===t?'selected':''}>${t}</option>`).join(''); }
+
+function chargeForm(c){
+  const isAnnuel = c && c.frequence==='annuel';
+  return `
+  <form class="entry" onsubmit="submitCharge(event)">
+    <div class="field"><label>Nom de la charge</label><input required id="f-nom" value="${c?escapeHtml(c.nom):''}" placeholder="Loyer, assurance auto…"></div>
+    <div class="field"><label>Catégorie</label><select id="f-categorie">${catOptions(c?c.categorie:'Autre')}</select></div>
+    <div class="grid2">
+      <div class="field"><label>Montant (€)</label><input required id="f-montant" type="number" step="0.01" min="0" value="${c?c.montant:''}"></div>
+      <div class="field"><label>Fréquence</label>
+        <select id="f-frequence" onchange="toggleMoisField()">
+          <option value="mensuel" ${!isAnnuel?'selected':''}>Mensuelle</option>
+          <option value="annuel" ${isAnnuel?'selected':''}>Annuelle</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Jour de paiement</label><input required id="f-jour" type="number" min="1" max="31" value="${c?c.jour:''}"></div>
+      <div class="field" id="f-mois-wrap" style="${isAnnuel?'':'display:none'}"><label>Mois de paiement</label>
+        <select id="f-mois">${MOIS.map((m,i)=>`<option value="${i+1}" ${c&&+c.mois===i+1?'selected':''}>${m}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn">${c?'Enregistrer':'Ajouter'}</button>
+      <button type="button" class="btn secondary" onclick="cancelCharge()">Annuler</button>
+    </div>
+  </form>`;
+}
+function toggleMoisField(){ document.getElementById('f-mois-wrap').style.display = document.getElementById('f-frequence').value==='annuel' ? '' : 'none'; }
+
+let showCategoryForm=false, editingCategoryName=null;
+function categoryForm(existing){
+  return `
+  <form class="entry" onsubmit="submitCategory(event)">
+    <div class="grid2">
+      <div class="field"><label>Nom de la catégorie</label><input required id="cat-nom" value="${existing?escapeHtml(existing.name):''}" placeholder="Loisirs, Santé…"></div>
+      <div class="field"><label>Couleur</label><input required id="cat-couleur" type="color" value="${existing?existing.color:'#5B9BD5'}" style="padding:4px; height:42px;"></div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn">${existing?'Enregistrer':'Ajouter'}</button>
+      <button type="button" class="btn secondary" onclick="cancelCategory()">Annuler</button>
+    </div>
+  </form>`;
+}
+function newCategory(){ showCategoryForm=true; editingCategoryName=null; showChargeForm=false; editingCharge=null; openMenuFor=null; renderCharges(); }
+function startEditCategory(name){ editingCategoryName=name; showCategoryForm=false; editingCharge=null; openMenuFor=null; renderCharges(); }
+function cancelCategory(){ showCategoryForm=false; editingCategoryName=null; renderCharges(); }
+function submitCategory(ev){
+  ev.preventDefault();
+  const nom = document.getElementById('cat-nom').value.trim();
+  const couleur = document.getElementById('cat-couleur').value;
+  if(!nom || !couleur) return;
+  if(editingCategoryName){
+    const existing = (state.customCategories||[]).find(c=>c.name===editingCategoryName);
+    const nameChanged = nom !== editingCategoryName;
+    if(nameChanged && getChargeCategories().some(c=>c.toLowerCase()===nom.toLowerCase())){ alert('Cette catégorie existe déjà.'); return; }
+    if(existing){ existing.name=nom; existing.color=couleur; }
+    if(nameChanged){ state.charges.forEach(c=>{ if(c.categorie===editingCategoryName) c.categorie=nom; }); }
+    editingCategoryName=null;
+  } else {
+    if(getChargeCategories().some(c=>c.toLowerCase()===nom.toLowerCase())){ alert('Cette catégorie existe déjà.'); return; }
+    if(!state.customCategories) state.customCategories=[];
+    state.customCategories.push({name:nom, color:couleur});
+  }
+  save(); showCategoryForm=false; renderCharges();
+}
+function deleteCategory(name){
+  askConfirm('Supprimer cette catégorie ? Les charges associées passeront dans "Autre".', ()=>{
+    state.charges.forEach(c=>{ if(c.categorie===name) c.categorie='Autre'; });
+    state.customCategories = (state.customCategories||[]).filter(c=>c.name!==name);
+    editingCategoryName=null; openMenuFor=null;
+    save(); renderCharges();
+  });
+}
+
+function renderCharges(){
+  const rowHtml = c => {
+    const menuKey = 'chargerow_'+c.id;
+    const menuOpen = openMenuFor===menuKey;
+    const row = `
+    <div class="row">
+      <div class="day-badge">${String(c.jour).padStart(2,'0')}</div>
+      <div class="row-main">
+        <div class="row-name">${escapeHtml(c.nom)}</div>
+        <div class="row-sub">${c.frequence==='annuel'?('chaque '+MOIS[c.mois-1]):'chaque mois'}</div>
+      </div>
+      <div class="row-amount">${fmt(c.montant)}</div>
+      <div class="menu-wrap">
+        <button class="icon-btn ghost" onclick="toggleMenu('${menuKey}')">⋮</button>
+        ${menuOpen ? `<div class="menu"><button onclick="startEditCharge('${c.id}')">Modifier</button><button onclick="deleteCharge('${c.id}')">Supprimer</button></div>` : ''}
+      </div>
+    </div>`;
+    const inline = (editingCharge && editingCharge.id===c.id) ? chargeForm(editingCharge) : '';
+    return row + inline;
+  };
+  const cycleOrder = jour => ((jour - PAYDAY + 31) % 31);
+  const chargesSansEpargne = state.charges.filter(c=>(c.categorie||'Autre')!=='Épargne');
+  const monthItems = itemsForMonth(viewMonth);
+  const catTotals = {};
+  monthItems.forEach(i=>{ if(i.kind==='charge'){ const cat=i.categorie||'Autre'; catTotals[cat]=(catTotals[cat]||0)+i.montant; } });
+  const groups = getChargeCategories().map(cat=>({cat, items: chargesSansEpargne.filter(c=>(c.categorie||'Autre')===cat).slice().sort((a,b)=>cycleOrder(+a.jour)-cycleOrder(+b.jour))})).filter(g=>g.items.length);
+  let body = !chargesSansEpargne.length
+    ? `<div class="empty"><strong>Aucune charge enregistrée</strong>Ajoute tes mensualités et charges annuelles pour suivre leurs échéances.</div>`
+    : groups.map(g=>{
+        const c = getCatInfo(g.cat);
+        const tot = catTotals[g.cat]||0;
+        const catMenuKey = 'catrow_'+g.cat;
+        const catMenuOpen = openMenuFor===catMenuKey;
+        const catMenu = isCustomCategory(g.cat) ? `
+          <div class="menu-wrap">
+            <button class="icon-btn ghost" onclick="toggleMenu('${catMenuKey}')">⋮</button>
+            ${catMenuOpen ? `<div class="menu"><button onclick="startEditCategory('${g.cat}')">Modifier</button><button onclick="deleteCategory('${g.cat}')">Supprimer</button></div>` : ''}
+          </div>` : '';
+        const header = `<div class="section-title cat-section" style="color:${c.text}"><span class="cat-dot" style="background:${c.dot}"></span><span style="flex:1">${g.cat}</span><span>${fmt(tot)}</span>${catMenu}</div>`;
+        const catInlineForm = editingCategoryName===g.cat ? categoryForm((state.customCategories||[]).find(cc=>cc.name===g.cat)) : '';
+        return header + catInlineForm + `<div class="card">${g.items.map(rowHtml).join('')}</div>`;
+      }).join('');
+  document.getElementById('content').innerHTML = `
+    <div class="fab-row" style="gap:8px">
+      <button class="btn secondary" onclick="newCategory()">+ Nouvelle catégorie</button>
+      <button class="btn" onclick="newCharge()">+ Ajouter une charge</button>
+    </div>
+    ${showCategoryForm ? categoryForm(null) : ''}
+    ${showChargeForm ? chargeForm(editingCharge) : ''}
+    ${body}
+  `;
+}
+function newCharge(){ editingCharge=null; showChargeForm=true; showCategoryForm=false; editingCategoryName=null; openMenuFor=null; renderCharges(); }
+function startEditCharge(id){ editingCharge = state.charges.find(c=>c.id===id); showChargeForm=false; showCategoryForm=false; editingCategoryName=null; openMenuFor=null; renderCharges(); }
+function cancelCharge(){ showChargeForm=false; editingCharge=null; renderCharges(); }
+function deleteCharge(id){
+  askConfirm('Supprimer cette charge ?', ()=>{
+    state.charges = state.charges.filter(c=>c.id!==id);
+    openMenuFor=null; save(); render();
+  });
+}
+function submitCharge(ev){
+  ev.preventDefault();
+  const nom = document.getElementById('f-nom').value.trim();
+  const categorie = document.getElementById('f-categorie').value;
+  const montant = document.getElementById('f-montant').value;
+  const frequence = document.getElementById('f-frequence').value;
+  const jour = document.getElementById('f-jour').value;
+  const mois = document.getElementById('f-mois').value;
+  if(!nom || !montant || !jour) return;
+  if(editingCharge){ Object.assign(editingCharge, {nom, categorie, montant, frequence, jour, mois}); }
+  else{ state.charges.push({id:uid(), nom, categorie, montant, frequence, jour, mois}); }
+  save(); showChargeForm=false; editingCharge=null; renderCharges();
+}
+
+let editingEpargne=null, showEpargneMensuelForm=false, showEpargneExceptForm=false;
+
+function epargneMensuelForm(ep){
+  return `
+  <form class="entry" onsubmit="submitEpargneMensuel(event)">
+    <div class="field"><label>Nom</label><input required id="ep-nom" value="${ep?escapeHtml(ep.nom):''}" placeholder="Assurance vie, Livret A…"></div>
+    <div class="grid2">
+      <div class="field"><label>Type</label><select id="ep-type">${typeEpargneOptions(ep?ep.typeEpargne:'Virement')}</select></div>
+      <div class="field"><label>Montant / mois (€)</label><input required id="ep-montant" type="number" step="0.01" min="0" value="${ep?ep.montant:''}"></div>
+    </div>
+    <div class="field"><label>Jour de virement</label><input required id="ep-jour" type="number" min="1" max="31" value="${ep?ep.jour:''}"></div>
+    <div class="actions">
+      <button type="submit" class="btn">${ep?'Enregistrer':'Ajouter'}</button>
+      <button type="button" class="btn secondary" onclick="cancelEpargneMensuel()">Annuler</button>
+    </div>
+  </form>`;
+}
+function newEpargneMensuel(){ editingEpargne=null; showEpargneMensuelForm=true; showEpargneExceptForm=false; renderEpargne(); }
+function editEpargneMensuel(id){ editingEpargne=state.charges.find(c=>c.id===id); showEpargneMensuelForm=true; showEpargneExceptForm=false; renderEpargne(); }
+function cancelEpargneMensuel(){ showEpargneMensuelForm=false; editingEpargne=null; renderEpargne(); }
+function submitEpargneMensuel(ev){
+  ev.preventDefault();
+  const nom = document.getElementById('ep-nom').value.trim();
+  const typeEpargne = document.getElementById('ep-type').value;
+  const montant = document.getElementById('ep-montant').value;
+  const jour = document.getElementById('ep-jour').value;
+  if(!nom || !montant || !jour) return;
+  if(editingEpargne){ Object.assign(editingEpargne, {nom, typeEpargne, montant, jour, categorie:'Épargne', frequence:'mensuel'}); }
+  else{ state.charges.push({id:uid(), nom, typeEpargne, montant, jour, mois:'', moisUnique:'', categorie:'Épargne', frequence:'mensuel'}); }
+  save(); showEpargneMensuelForm=false; editingEpargne=null; renderEpargne();
+}
+
+function epargneExceptForm(ep){
+  return `
+  <form class="entry" onsubmit="submitEpargneExcept(event)">
+    <div class="field"><label>Nom</label><input required id="epx-nom" value="${ep?escapeHtml(ep.nom):''}" placeholder="Virement ponctuel…"></div>
+    <div class="grid2">
+      <div class="field"><label>Type</label><select id="epx-type">${typeEpargneOptions(ep?ep.typeEpargne:'Virement')}</select></div>
+      <div class="field"><label>Montant (€)</label><input required id="epx-montant" type="number" step="0.01" min="0" value="${ep?ep.montant:''}"></div>
+    </div>
+    <div class="field"><label>Mois</label><input required id="epx-mois" type="month" value="${ep?ep.moisUnique:''}"></div>
+    <div class="actions">
+      <button type="submit" class="btn">${ep?'Enregistrer':'Ajouter'}</button>
+      <button type="button" class="btn secondary" onclick="cancelEpargneExcept()">Annuler</button>
+    </div>
+  </form>`;
+}
+function newEpargneExcept(){ editingEpargne=null; showEpargneExceptForm=true; showEpargneMensuelForm=false; renderEpargne(); }
+function editEpargneExcept(id){ editingEpargne=state.charges.find(c=>c.id===id); showEpargneExceptForm=true; showEpargneMensuelForm=false; renderEpargne(); }
+function cancelEpargneExcept(){ showEpargneExceptForm=false; editingEpargne=null; renderEpargne(); }
+function submitEpargneExcept(ev){
+  ev.preventDefault();
+  const nom = document.getElementById('epx-nom').value.trim();
+  const typeEpargne = document.getElementById('epx-type').value;
+  const montant = document.getElementById('epx-montant').value;
+  const moisUnique = document.getElementById('epx-mois').value;
+  if(!nom || !montant || !moisUnique) return;
+  if(editingEpargne){ Object.assign(editingEpargne, {nom, typeEpargne, montant, moisUnique, categorie:'Épargne', frequence:'unique', jour:1}); }
+  else{ state.charges.push({id:uid(), nom, typeEpargne, montant, jour:1, mois:'', moisUnique, categorie:'Épargne', frequence:'unique'}); }
+  save(); showEpargneExceptForm=false; editingEpargne=null; renderEpargne();
+}
+
+function renderEpargne(){
+  const epargnes = state.charges.filter(c=>(c.categorie||'')==='Épargne');
+  const mensuelles = epargnes.filter(e=>e.frequence==='mensuel');
+  const exceptionnelles = epargnes.filter(e=>e.frequence==='unique');
+  const monthItems = itemsForMonth(viewMonth).filter(i=>i.categorie==='Épargne');
+  const total = monthItems.reduce((s,i)=>s+i.montant,0);
+  const rowHtml = (e, editFn) => `
+    <div class="row">
+      <div class="day-badge">${String(e.jour||1).padStart(2,'0')}</div>
+      <div class="row-main" onclick="${editFn}('${e.id}')" style="cursor:pointer">
+        <div class="row-name">${escapeHtml(e.nom)}</div>
+        <div class="row-sub">${escapeHtml(e.typeEpargne||'Autre')}${e.frequence==='unique' ? (' · '+MOIS[+e.moisUnique.split('-')[1]-1]+' '+e.moisUnique.split('-')[0]) : ' · chaque mois'}</div>
+      </div>
+      <div class="row-amount">${fmt(e.montant)}</div>
+      <button class="del" onclick="deleteCharge('${e.id}')">×</button>
+    </div>`;
+  const body = !epargnes.length
+    ? `<div class="empty"><strong>Aucune épargne enregistrée</strong>Ajoute une épargne mensuelle ou ponctuelle pour la suivre ici.</div>`
+    : `
+      ${mensuelles.length?`<div class="section-title">Mensuelle</div><div class="card">${mensuelles.map(e=>rowHtml(e,'editEpargneMensuel')).join('')}</div>`:''}
+      ${exceptionnelles.length?`<div class="section-title">Exceptionnelle</div><div class="card">${exceptionnelles.map(e=>rowHtml(e,'editEpargneExcept')).join('')}</div>`:''}
+    `;
+  document.getElementById('content').innerHTML = `
+    <div class="card hero">
+      <div class="total-label">Total épargne du mois</div>
+      <div class="total-amount">${fmt(total)}</div>
+    </div>
+    <div class="fab-row" style="gap:8px">
+      <button class="btn secondary" onclick="newEpargneExcept()">+ Épargne exceptionnelle</button>
+      <button class="btn" onclick="newEpargneMensuel()">+ Épargne mensuelle</button>
+    </div>
+    ${showEpargneMensuelForm ? epargneMensuelForm(editingEpargne) : ''}
+    ${showEpargneExceptForm ? epargneExceptForm(editingEpargne) : ''}
+    ${body}
+  `;
+}
+
+function exceptForm(e){
+  return `
+  <form class="entry" onsubmit="submitExcept(event)">
+    <div class="field"><label>Nom de la dépense</label><input required id="e-nom" value="${e?escapeHtml(e.nom):''}" placeholder="Réparation voiture, remboursement…"></div>
+    <div class="grid2">
+      <div class="field"><label>Montant / mois (€)</label><input required id="e-montant" type="number" step="0.01" min="0" value="${e?e.montant:''}"></div>
+      <div class="field"><label>Durée (mois)</label><input required id="e-duree" type="number" min="1" value="${e?e.duree:''}"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Mois de départ</label><input required id="e-mois" type="month" value="${e?e.moisDebut:''}"></div>
+      <div class="field"><label>Jour de prélèvement</label><input required id="e-jour" type="number" min="1" max="31" value="${e?(e.jour||1):1}"></div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn">${e?'Enregistrer':'Ajouter'}</button>
+      <button type="button" class="btn secondary" onclick="cancelExcept()">Annuler</button>
+    </div>
+  </form>`;
+}
+function renderExcept(){
+  const cc = currentCycle(); const curIdx = cc.year*12+(cc.month-1);
+  const withStatus = state.exceptionnelles.map(e=>{
+    const [y,m] = e.moisDebut.split('-').map(Number);
+    const startIdx = y*12+(m-1); const offset = curIdx-startIdx;
+    const status = offset<0 ? 'à venir' : (offset<+e.duree ? 'actif' : 'terminé');
+    return Object.assign({}, e, {y, m, offset, status});
+  });
+  const actifs = withStatus.filter(e=>e.status!=='terminé');
+  const archives = withStatus.filter(e=>e.status==='terminé');
+  const rowHtml = e => `
+    <div class="row">
+      <div class="day-badge">${String(e.jour||1).padStart(2,'0')}</div>
+      <div class="row-main" onclick="editExcept('${e.id}')" style="cursor:pointer">
+        <div class="row-name">${escapeHtml(e.nom)}</div>
+        <div class="row-sub">à partir de ${MOIS[e.m-1]} ${e.y} · ${e.duree} mois</div>
+      </div>
+      <span class="tag ${e.status==='actif'?'':'warn'}">${e.status==='actif'?('mois '+(e.offset+1)+'/'+e.duree):e.status}</span>
+      <div class="row-amount">${fmt(e.montant)}</div>
+      <button class="del" onclick="deleteExcept('${e.id}')">×</button>
+    </div>`;
+  const archiveRowHtml = e => `
+    <div class="row">
+      <div class="day-badge">${String(e.jour||1).padStart(2,'0')}</div>
+      <div class="row-main"><div class="row-name">${escapeHtml(e.nom)}</div><div class="row-sub">${MOIS[e.m-1]} ${e.y} · ${e.duree} mois · terminé</div></div>
+      <div class="row-amount">${fmt(e.montant)}</div>
+      <button class="del" onclick="deleteExcept('${e.id}')">×</button>
+    </div>`;
+  const mainBody = actifs.length
+    ? `<div class="card">${actifs.map(rowHtml).join('')}</div>`
+    : `<div class="empty"><strong>Aucune dépense exceptionnelle en cours</strong>Ajoute une dépense ponctuelle répartie sur plusieurs mois — un remboursement, une réparation…</div>`;
+  const archiveBody = archives.length
+    ? `<div class="card archive-card">${archives.map(archiveRowHtml).join('')}</div>`
+    : `<div class="card archive-card"><div class="muted">Aucune dépense archivée pour l'instant.</div></div>`;
+  document.getElementById('content').innerHTML = `
+    <div class="fab-row"><button class="btn" onclick="newExcept()">+ Ajouter une dépense</button></div>
+    ${showExceptForm ? exceptForm(editingExcept) : ''}
+    ${mainBody}
+    <div class="section-title">Archive</div>
+    ${archiveBody}
+  `;
+}
+function newExcept(){ editingExcept=null; showExceptForm=true; renderExcept(); }
+function editExcept(id){ editingExcept = state.exceptionnelles.find(e=>e.id===id); showExceptForm=true; renderExcept(); }
+function cancelExcept(){ showExceptForm=false; editingExcept=null; renderExcept(); }
+function deleteExcept(id){
+  askConfirm('Supprimer cette dépense ?', ()=>{
+    state.exceptionnelles = state.exceptionnelles.filter(e=>e.id!==id);
+    save(); renderExcept();
+  });
+}
+function submitExcept(ev){
+  ev.preventDefault();
+  const nom = document.getElementById('e-nom').value.trim();
+  const montant = document.getElementById('e-montant').value;
+  const duree = document.getElementById('e-duree').value;
+  const moisDebut = document.getElementById('e-mois').value;
+  const jour = document.getElementById('e-jour').value || 1;
+  if(!nom || !montant || !duree || !moisDebut) return;
+  if(editingExcept){ Object.assign(editingExcept, {nom, montant, duree, moisDebut, jour}); }
+  else{ state.exceptionnelles.push({id:uid(), nom, montant, duree, moisDebut, jour}); }
+  save(); showExceptForm=false; editingExcept=null; renderExcept();
+}
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function render(){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  if(tab==='apercu') renderApercu(); else if(tab==='charges') renderCharges(); else if(tab==='epargne') renderEpargne(); else renderExcept();
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click', ()=>{ tab=b.dataset.tab; openMenuFor=null; showEpargneMensuelForm=false; showEpargneExceptForm=false; render(); }));
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
