@@ -4,7 +4,7 @@
   "description": "Suivi de charges, épargne et budget mensuel",
   "start_url": "/Budget-app/",
   "scope": "/Budget-app/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "any",
   "dir": "ltr",
   "background_color": "#ffffff",
